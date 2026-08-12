@@ -1,29 +1,32 @@
 /* ============================================================
    LAYERS.JS
-   Mapa Educacional - MS
+   MAPA EDUCACIONAL - MATO GROSSO DO SUL
 
-   Carregamento inicial:
-   - Google Satellite
-   - Municípios
-   - Meta de Matemática
-   - Meta de Português
+   CAMADAS CARREGADAS NA ABERTURA:
+   1. Google Satellite
+   2. Municípios
+   3. Escolas
 
-   Renda e PPI NÃO são carregadas aqui.
-   Elas serão carregadas sob demanda pelo index.html.
+   CAMADAS SOB DEMANDA:
+   4. Renda
+   5. PPI
+
+   IMPORTANTE:
+   Renda e PPI NÃO são carregadas neste arquivo.
    ============================================================ */
 
 var wms_layers = [];
 
 
 /* ============================================================
-   GOOGLE SATELLITE
+   1. GOOGLE SATELLITE
    ============================================================ */
 
 var lyr_GoogleSatellite_0 = new ol.layer.Tile({
 
-    'title': 'Google Satellite',
+    title: 'Google Satellite',
 
-    'opacity': 1.0,
+    opacity: 1,
 
     source: new ol.source.XYZ({
 
@@ -39,21 +42,23 @@ var lyr_GoogleSatellite_0 = new ol.layer.Tile({
 
 
 /* ============================================================
-   MUNICÍPIOS
+   2. MUNICÍPIOS
    ============================================================ */
 
-var format_Municipios_Mato_Grosso_do_Sul_2025_3 =
+var format_Municipios_MS_2025 =
     new ol.format.GeoJSON();
 
 
-var features_Municipios_Mato_Grosso_do_Sul_2025_3 =
-    format_Municipios_Mato_Grosso_do_Sul_2025_3.readFeatures(
+var features_Municipios_MS_2025 =
+    format_Municipios_MS_2025.readFeatures(
 
-        json_Municipios_Mato_Grosso_do_Sul_2025_3,
+        json_Municipios_MS_2025_otimizado,
 
         {
             dataProjection: 'EPSG:4326',
+
             featureProjection: 'EPSG:3857'
+
         }
 
     );
@@ -67,15 +72,14 @@ var jsonSource_Municipios_Mato_Grosso_do_Sul_2025_3 =
     });
 
 
-jsonSource_Municipios_Mato_Grosso_do_Sul_2025_3.addFeatures(
-    features_Municipios_Mato_Grosso_do_Sul_2025_3
-);
+jsonSource_Municipios_Mato_Grosso_do_Sul_2025_3
+    .addFeatures(
+        features_Municipios_MS_2025
+    );
 
 
 var lyr_Municipios_Mato_Grosso_do_Sul_2025_3 =
     new ol.layer.Vector({
-
-        declutter: false,
 
         source:
             jsonSource_Municipios_Mato_Grosso_do_Sul_2025_3,
@@ -86,36 +90,48 @@ var lyr_Municipios_Mato_Grosso_do_Sul_2025_3 =
         popuplayertitle:
             'Municípios de Mato Grosso do Sul',
 
-        interactive: true,
+        interactive:
+            true,
 
         title:
-            '<img src="styles/legend/Municipios_Mato_Grosso_do_Sul_2025_3.png" /> Municípios'
+            'Municípios de Mato Grosso do Sul'
 
     });
 
 
 /* ============================================================
-   META DE MATEMÁTICA
+   3. ESCOLAS
    ============================================================ */
 
-var format_MetadeMatemtica_4 =
+/*
+   Existe uma única base de escolas.
+
+   Matemática e Português usam a mesma fonte.
+
+   Isso evita carregar os mesmos pontos duas vezes.
+*/
+
+
+var format_Escolas_IDEB_2025 =
     new ol.format.GeoJSON();
 
 
-var features_MetadeMatemtica_4 =
-    format_MetadeMatemtica_4.readFeatures(
+var features_Escolas_IDEB_2025 =
+    format_Escolas_IDEB_2025.readFeatures(
 
-        json_MetadeMatemtica_4,
+        json_Escolas_IDEB_2025,
 
         {
             dataProjection: 'EPSG:4326',
+
             featureProjection: 'EPSG:3857'
+
         }
 
     );
 
 
-var jsonSource_MetadeMatemtica_4 =
+var jsonSource_Escolas_IDEB_2025 =
     new ol.source.Vector({
 
         attributions: ' '
@@ -123,18 +139,25 @@ var jsonSource_MetadeMatemtica_4 =
     });
 
 
-jsonSource_MetadeMatemtica_4.addFeatures(
-    features_MetadeMatemtica_4
-);
+jsonSource_Escolas_IDEB_2025
+    .addFeatures(
+        features_Escolas_IDEB_2025
+    );
+
+
+/* ============================================================
+   3.1 MATEMÁTICA
+   ============================================================ */
+
+var jsonSource_MetadeMatemtica_4 =
+    jsonSource_Escolas_IDEB_2025;
 
 
 var lyr_MetadeMatemtica_4 =
     new ol.layer.Vector({
 
-        declutter: false,
-
         source:
-            jsonSource_MetadeMatemtica_4,
+            jsonSource_Escolas_IDEB_2025,
 
         style:
             style_MetadeMatemtica_4,
@@ -142,58 +165,28 @@ var lyr_MetadeMatemtica_4 =
         popuplayertitle:
             'Meta de Matemática',
 
-        interactive: true,
+        interactive:
+            true,
 
         title:
-            'Meta de Matemática<br />\
-            <img src="styles/legend/MetadeMatemtica_4_0.png" /> não<br />\
-            <img src="styles/legend/MetadeMatemtica_4_1.png" /> sim<br />\
-            <img src="styles/legend/MetadeMatemtica_4_2.png" /> SN<br />'
+            'Meta de Matemática'
 
     });
 
 
 /* ============================================================
-   META DE PORTUGUÊS
+   3.2 PORTUGUÊS
    ============================================================ */
 
-var format_MetadePortugus_5 =
-    new ol.format.GeoJSON();
-
-
-var features_MetadePortugus_5 =
-    format_MetadePortugus_5.readFeatures(
-
-        json_MetadePortugus_5,
-
-        {
-            dataProjection: 'EPSG:4326',
-            featureProjection: 'EPSG:3857'
-        }
-
-    );
-
-
 var jsonSource_MetadePortugus_5 =
-    new ol.source.Vector({
-
-        attributions: ' '
-
-    });
-
-
-jsonSource_MetadePortugus_5.addFeatures(
-    features_MetadePortugus_5
-);
+    jsonSource_Escolas_IDEB_2025;
 
 
 var lyr_MetadePortugus_5 =
     new ol.layer.Vector({
 
-        declutter: false,
-
         source:
-            jsonSource_MetadePortugus_5,
+            jsonSource_Escolas_IDEB_2025,
 
         style:
             style_MetadePortugus_5,
@@ -201,13 +194,11 @@ var lyr_MetadePortugus_5 =
         popuplayertitle:
             'Meta de Português',
 
-        interactive: true,
+        interactive:
+            true,
 
         title:
-            'Meta de Português<br />\
-            <img src="styles/legend/MetadePortugus_5_0.png" /> não<br />\
-            <img src="styles/legend/MetadePortugus_5_1.png" /> sim<br />\
-            <img src="styles/legend/MetadePortugus_5_2.png" /> SN<br />'
+            'Meta de Português'
 
     });
 
@@ -216,47 +207,60 @@ var lyr_MetadePortugus_5 =
    VISIBILIDADE INICIAL
    ============================================================ */
 
+
 /*
-   Google Satellite:
+   Satélite:
    VISÍVEL
-
-   Municípios:
-   VISÍVEL
-
-   Matemática:
-   OCULTA inicialmente
-
-   Português:
-   VISÍVEL inicialmente
-
-   Renda:
-   NÃO EXISTE AINDA
-
-   PPI:
-   NÃO EXISTE AINDA
 */
 
+lyr_GoogleSatellite_0.setVisible(
+    true
+);
 
-lyr_GoogleSatellite_0.setVisible(true);
 
-lyr_Municipios_Mato_Grosso_do_Sul_2025_3.setVisible(true);
+/*
+   Municípios:
+   VISÍVEL
+*/
 
-lyr_MetadeMatemtica_4.setVisible(false);
+lyr_Municipios_Mato_Grosso_do_Sul_2025_3
+    .setVisible(
+        true
+    );
 
-lyr_MetadePortugus_5.setVisible(true);
+
+/*
+   Português:
+   VISÍVEL
+*/
+
+lyr_MetadePortugus_5
+    .setVisible(
+        true
+    );
+
+
+/*
+   Matemática:
+   OCULTA
+
+   O usuário poderá ativá-la pelo painel.
+*/
+
+lyr_MetadeMatemtica_4
+    .setVisible(
+        false
+    );
 
 
 /* ============================================================
-   LISTA DAS CAMADAS INICIAIS
+   LISTA DE CAMADAS INICIAIS
    ============================================================ */
 
 /*
-   IMPORTANTE:
+   SOMENTE estas camadas entram no mapa inicialmente.
 
-   Renda e PPI foram deliberadamente retiradas desta lista.
-
-   Elas serão adicionadas ao mapa somente quando o usuário
-   solicitar.
+   Renda e PPI NÃO entram aqui.
 */
 
 var layersList = [
@@ -273,16 +277,8 @@ var layersList = [
 
 
 /* ============================================================
-   ALIASES DOS CAMPOS
+   ALIASES
    ============================================================ */
-
-/*
-   Mantemos apenas os aliases realmente necessários.
-
-   Isso não interfere nos dados do mapa.
-   Serve apenas para identificar os campos.
-*/
-
 
 lyr_Municipios_Mato_Grosso_do_Sul_2025_3.set(
     'fieldAliases',
@@ -417,7 +413,7 @@ lyr_MetadePortugus_5.set(
 
 
 /* ============================================================
-   FIELD IMAGES
+   CONFIGURAÇÕES DE POPUP
    ============================================================ */
 
 lyr_Municipios_Mato_Grosso_do_Sul_2025_3.set(
@@ -553,36 +549,30 @@ lyr_MetadePortugus_5.set(
 
 
 /* ============================================================
-   FIM
+   FINALIZAÇÃO
    ============================================================ */
 
 /*
-   NÃO adicionar aqui:
-
-       json_Renda_1
-       json_PPI_2
-
-   NÃO adicionar aqui:
-
-       lyr_Renda_1
-       lyr_PPI_2
+   NÃO colocar Renda aqui.
+   NÃO colocar PPI aqui.
 
    NÃO fazer:
 
-       readFeatures(json_Renda_1)
+   var format_Renda_1 = ...
+   readFeatures(json_Renda_1)
 
    NÃO fazer:
 
-       readFeatures(json_PPI_2)
+   var format_PPI_2 = ...
+   readFeatures(json_PPI_2)
 
-   Essas duas camadas são carregadas pelo index.html
-   somente quando o usuário clicar nos botões.
+   Essas camadas serão adicionadas posteriormente.
 */
 
 console.log(
-    'Layers inicializadas: Google Satellite, Municípios, Matemática e Português.'
+    'Mapa Educacional: camadas iniciais carregadas.'
 );
 
 console.log(
-    'Renda e PPI serão carregadas sob demanda.'
+    'Renda e PPI: carregamento adiado.'
 );
