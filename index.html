@@ -1,0 +1,2724 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<title>Mapa Educacional — MS</title>
+
+<link rel="stylesheet" href="./resources/ol.css">
+<link rel="stylesheet" href="./resources/fontawesome-all.min.css">
+
+<style>
+:root{
+    --navy:#0f172a;
+    --blue:#2563eb;
+    --muted:#64748b;
+    --line:#e2e8f0;
+    --panel:rgba(255,255,255,.97);
+    --shadow:0 18px 50px rgba(15,23,42,.18)
+}
+
+*{
+    box-sizing:border-box
+}
+
+html,body,#map{
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+
+body{
+    overflow:hidden;
+    background:#e2e8f0
+}
+
+#map{
+    position:fixed;
+    inset:0
+}
+
+.ol-control{
+    background:transparent!important;
+    padding:0!important
+}
+
+.ol-control button{
+    background:rgba(255,255,255,.95)!important;
+    color:#0f172a!important;
+    border:1px solid rgba(226,232,240,.95)!important;
+    box-shadow:0 6px 18px rgba(15,23,42,.12);
+    border-radius:10px!important;
+    margin:3px;
+    width:34px;
+    height:34px;
+    font-size:18px
+}
+
+.ol-zoom{
+    top:auto;
+    left:auto;
+    right:18px;
+    bottom:74px
+}
+
+.ol-scale-line{
+    left:18px;
+    bottom:18px;
+    background:rgba(255,255,255,.9)!important;
+    padding:4px 7px;
+    border-radius:7px
+}
+
+.ol-scale-line-inner{
+    border-color:#334155;
+    color:#334155
+}
+
+#map-title{
+    position:fixed;
+    z-index:20;
+    left:22px;
+    top:20px;
+    background:rgba(15,23,42,.92);
+    color:#fff;
+    border-radius:15px;
+    padding:13px 18px 14px;
+    box-shadow:var(--shadow);
+    letter-spacing:.01em
+}
+
+#map-title .eyebrow{
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.16em;
+    opacity:.7;
+    margin-bottom:3px
+}
+
+#map-title div:nth-child(2){
+    font-size:18px;
+    font-weight:800;
+    line-height:1.2
+}
+
+#map-title small{
+    display:block;
+    font-size:11px;
+    color:#cbd5e1;
+    margin-top:4px
+}
+
+#control-panel{
+    position:fixed;
+    z-index:30;
+    top:20px;
+    right:20px;
+    width:340px;
+    max-height:calc(100vh - 40px);
+    overflow:auto;
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,.75);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:18px
+}
+
+#control-panel.collapsed{
+    display:none
+}
+
+.panel-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:18px
+}
+
+.panel-kicker{
+    font-size:10px;
+    letter-spacing:.16em;
+    color:var(--blue);
+    font-weight:800
+}
+
+.panel-head h2{
+    font-size:21px;
+    margin:2px 0 0;
+    color:var(--navy)
+}
+
+#close-panel,
+#popup-close{
+    border:0;
+    background:#f1f5f9;
+    color:#334155;
+    width:30px;
+    height:30px;
+    border-radius:9px;
+    font-size:20px;
+    line-height:1;
+    cursor:pointer
+}
+
+section{
+    margin:0 0 19px
+}
+
+.section-label{
+    font-size:12px;
+    font-weight:800;
+    color:#475569;
+    margin-bottom:8px
+}
+
+.segmented{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px
+}
+
+.segmented button,
+.toggle-btn{
+    border:1px solid var(--line);
+    background:#f8fafc;
+    color:#475569;
+    border-radius:10px;
+    padding:10px 9px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.18s
+}
+
+.segmented button.active,
+.toggle-btn.active{
+    background:#eff6ff;
+    border-color:#93c5fd;
+    color:#1d4ed8;
+    box-shadow:inset 0 0 0 1px #dbeafe
+}
+
+.segmented button:hover,
+.toggle-btn:hover{
+    transform:translateY(-1px)
+}
+
+.filter-select{
+    width:100%;
+    padding:11px 10px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:#f8fafc;
+    color:#334155;
+    font-size:12px;
+    font-weight:650;
+    outline:none;
+    margin-bottom:8px
+}
+
+.filter-select:focus{
+    border-color:#93c5fd;
+    box-shadow:0 0 0 3px rgba(37,99,235,.10)
+}
+
+.toggle-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px
+}
+
+.toggle-btn{
+    width:100%
+}
+
+.legend-section{
+    border-top:1px solid var(--line);
+    padding-top:16px
+}
+
+.legend-title{
+    font-size:14px;
+    font-weight:850;
+    color:var(--navy);
+    margin-bottom:8px
+}
+
+.legend-note{
+    font-size:10px;
+    color:#94a3b8;
+    margin-top:7px;
+    line-height:1.4
+}
+
+.reset-btn{
+    width:100%;
+    border:0;
+    border-radius:10px;
+    background:#0f172a;
+    color:white;
+    padding:11px;
+    font-weight:750;
+    cursor:pointer;
+    margin-top:2px
+}
+
+.reset-btn:hover{
+    background:#1e293b
+}
+
+.panel-footer{
+    font-size:10px;
+    line-height:1.45;
+    color:#94a3b8;
+    margin-top:12px;
+    text-align:center
+}
+
+#open-panel{
+    display:none;
+    position:fixed;
+    z-index:31;
+    right:18px;
+    top:18px;
+    width:42px;
+    height:42px;
+    border:0;
+    border-radius:12px;
+    background:#0f172a;
+    color:#fff;
+    font-size:20px;
+    box-shadow:var(--shadow);
+    cursor:pointer
+}
+
+#open-panel.visible{
+    display:block
+}
+
+#custom-popup{
+    position:fixed;
+    z-index:40;
+    display:none;
+    right:365px;
+    top:20px;
+    width:min(390px,calc(100vw - 40px));
+    max-height:calc(100vh - 40px);
+    overflow:auto;
+    background:rgba(255,255,255,.98);
+    border:1px solid #e2e8f0;
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:18px
+}
+
+#custom-popup.visible{
+    display:block
+}
+
+#popup-close{
+    position:absolute;
+    right:12px;
+    top:12px
+}
+
+.popup-type{
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.14em;
+    color:#2563eb
+}
+
+#popup-body h3{
+    font-size:18px;
+    line-height:1.2;
+    color:#0f172a;
+    margin:4px 35px 14px 0
+}
+
+.popup-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px
+}
+
+.popup-grid>div{
+    background:#f8fafc;
+    border-radius:10px;
+    padding:9px
+}
+
+.popup-grid>div.wide{
+    grid-column:1/-1
+}
+
+.popup-grid b{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:#64748b;
+    margin-bottom:3px
+}
+
+.popup-grid span{
+    font-size:12px;
+    color:#0f172a;
+    line-height:1.35
+}
+
+.pill{
+    display:inline-block!important;
+    border-radius:99px;
+    padding:2px 7px;
+    font-weight:800
+}
+
+.pill.yes{
+    background:#dcfce7;
+    color:#166534
+}
+
+.pill.no{
+    background:#e2e8f0;
+    color:#475569
+}
+
+.pill.missing{
+    background:#e5e7eb;
+    color:#4b5563
+}
+
+.popup-foot{
+    font-size:10px;
+    line-height:1.45;
+    color:#94a3b8;
+    margin-top:12px
+}
+
+#school-count{
+    font-size:11px;
+    color:#64748b;
+    margin-top:5px
+}
+
+/* Indicador de carregamento das camadas */
+#loading-layer{
+    display:none;
+    position:fixed;
+    z-index:100;
+    left:50%;
+    bottom:25px;
+    transform:translateX(-50%);
+    background:rgba(15,23,42,.94);
+    color:white;
+    padding:10px 16px;
+    border-radius:10px;
+    font-size:12px;
+    box-shadow:0 8px 25px rgba(0,0,0,.2)
+}
+
+#loading-layer.visible{
+    display:block
+}
+
+@media(max-width:760px){
+
+    #map-title{
+        left:12px;
+        top:12px;
+        right:64px;
+        padding:10px 13px;
+        border-radius:13px
+    }
+
+    #map-title div:nth-child(2){
+        font-size:15px
+    }
+
+    #map-title small{
+        font-size:9px
+    }
+
+    #control-panel{
+        top:auto;
+        bottom:0;
+        left:0;
+        right:0;
+        width:100%;
+        max-height:78vh;
+        border-radius:18px 18px 0 0;
+        padding:16px
+    }
+
+    #custom-popup{
+        left:12px;
+        right:12px;
+        top:80px;
+        width:auto;
+        max-height:calc(100vh - 100px)
+    }
+
+    .ol-zoom{
+        right:12px;
+        bottom:82px
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div id="map-title">
+    <div class="eyebrow">FADEB/MS · NUAD</div>
+    <div>Mapa Educacional — MS</div>
+    <small>Escolas, indicadores educacionais e contexto territorial</small>
+</div>
+
+<div id="loading-layer">
+    Carregando camada...
+</div>
+
+<button id="open-panel" aria-label="Abrir filtros">☰</button>
+
+<aside id="control-panel">
+
+    <div class="panel-head">
+        <div>
+            <div class="panel-kicker">CONTROLES</div>
+            <h2>Mapa Educacional</h2>
+        </div>
+
+        <button id="close-panel" aria-label="Fechar">×</button>
+    </div>
+
+    <section>
+
+        <div class="section-label">Município</div>
+
+        <select id="municipio-select" class="filter-select">
+            <option value="">Carregando...</option>
+        </select>
+
+        <div class="legend-note">
+            Ao escolher um município, o mapa aproxima e exibe somente sua delimitação e os setores correspondentes.
+        </div>
+
+    </section>
+
+    <section>
+
+        <div class="section-label">Etapa</div>
+
+        <select id="etapa-select" class="filter-select"></select>
+
+        <div class="section-label">Rede</div>
+
+        <select id="rede-select" class="filter-select"></select>
+
+    </section>
+
+    <section>
+
+        <div class="section-label">Indicador das escolas</div>
+
+        <div class="segmented">
+
+            <button id="indicator-port" class="active">
+                Meta Português
+            </button>
+
+            <button id="indicator-mat">
+                Meta Matemática
+            </button>
+
+        </div>
+
+    </section>
+
+    <section>
+
+        <div class="section-label">Escola</div>
+
+        <select id="school-select" class="filter-select">
+            <option>Carregando...</option>
+        </select>
+
+        <div id="school-count"></div>
+
+    </section>
+
+    <section>
+
+        <div class="section-label">Camadas</div>
+
+        <div class="toggle-grid">
+
+            <button id="toggle-renda" class="toggle-btn">
+                Renda
+            </button>
+
+            <button id="toggle-ppi" class="toggle-btn">
+                PPI
+            </button>
+
+            <button id="toggle-municipios" class="toggle-btn active">
+                Municípios
+            </button>
+
+        </div>
+
+        <div class="legend-note">
+            Renda e PPI são carregadas somente quando ativadas.
+        </div>
+
+    </section>
+
+    <section class="legend-section">
+
+        <div class="legend-title">
+            Metas das escolas
+        </div>
+
+        <div style="font-size:11px;line-height:1.9;color:#475569">
+
+            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#16a34a;border:2px solid white;vertical-align:-2px;margin-right:6px"></span>
+            Sim
+
+            &nbsp;&nbsp;
+
+            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#dc2626;border:2px solid white;vertical-align:-2px;margin-right:6px"></span>
+            Não
+
+            &nbsp;&nbsp;
+
+            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#9ca3af;border:2px solid white;vertical-align:-2px;margin-right:6px"></span>
+            SN
+
+        </div>
+
+        <div class="legend-note">
+            O mapa inicia somente com o satélite, municípios e escolas.
+            Renda e PPI são carregadas sob demanda.
+        </div>
+
+    </section>
+
+    <button id="reset-btn" class="reset-btn">
+        Limpar filtros e voltar ao MS
+    </button>
+
+    <div class="panel-footer">
+        Clique em uma escola no mapa para consultar seus indicadores.
+    </div>
+
+</aside>
+
+<div id="custom-popup">
+
+    <button id="popup-close" aria-label="Fechar">×</button>
+
+    <div id="popup-body"></div>
+
+</div>
+
+
+<!-- Bibliotecas -->
+<script src="./resources/qgis2web_expressions.js"></script>
+<script src="./resources/functions.js"></script>
+<script src="./resources/ol.js"></script>
+<script src="./resources/Autolinker.min.js"></script>
+
+
+<!-- Estilos -->
+<script src="./styles/Renda_1_style.js"></script>
+<script src="./styles/PPI_2_style.js"></script>
+<script src="./styles/Municipios_Mato_Grosso_do_Sul_2025_3_style.js"></script>
+<script src="./styles/MetadeMatemtica_4_style.js"></script>
+<script src="./styles/MetadePortugus_5_style.js"></script>
+
+
+<!--
+IMPORTANTE:
+
+NÃO carregamos aqui:
+
+Renda_1_otimizada.js
+PPI_2_otimizada.js
+
+Esses arquivos serão carregados somente quando
+o usuário clicar nos respectivos botões.
+-->
+<script src="./layers/Municipios_MS_2025_otimizado.js"></script>
+<script src="./layers/Escolas_IDEB_2025.js"></script>
+
+<script src="./layers/layers.js"></script>
+
+<script>
+
+(function(){
+
+'use strict';
+
+
+/* ============================================================
+   CONFIGURAÇÃO DAS CAMADAS SOB DEMANDA
+   ============================================================ */
+
+var rendaLoaded = false;
+var ppiLoaded = false;
+
+var rendaLoading = false;
+var ppiLoading = false;
+
+
+/* ============================================================
+   MAPA
+   ============================================================ */
+
+var map = new ol.Map({
+
+    target:'map',
+
+    layers:[
+        lyr_GoogleSatellite_0,
+        lyr_Municipios_Mato_Grosso_do_Sul_2025_3,
+        lyr_MetadeMatemtica_4,
+        lyr_MetadePortugus_5
+    ],
+
+    view:new ol.View({
+
+        center:ol.proj.fromLonLat([
+            -54.5,
+            -20.5
+        ]),
+
+        zoom:6.2
+
+    }),
+
+    controls:ol.control.defaults.defaults({
+
+        zoom:false,
+        attribution:true,
+        rotate:false
+
+    }).extend([
+
+        new ol.control.Zoom(),
+
+        new ol.control.ScaleLine()
+
+    ])
+
+});
+
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+
+var state={
+
+    etapa:'',
+    rede:'',
+    municipio:'',
+    escola:'',
+    indicator:'port',
+
+    renda:false,
+    ppi:false,
+
+    municipios:true
+
+};
+
+
+/* ============================================================
+   DADOS INICIAIS
+   ============================================================ */
+
+var schoolFeatures =
+    jsonSource_Escolas_IDEB_2025.getFeatures();
+
+var munFeatures =
+    jsonSource_Municipios_Mato_Grosso_do_Sul_2025_3.getFeatures();
+
+
+/* ============================================================
+   FUNÇÕES AUXILIARES
+   ============================================================ */
+
+function norm(v){
+
+    return v===null || v===undefined
+        ? ''
+        : String(v).trim();
+
+}
+
+
+function esc(v){
+
+    return String(v)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+
+}
+
+
+function uniqueSorted(arr){
+
+    return Array.from(
+        new Set(arr.filter(Boolean))
+    ).sort(function(a,b){
+
+        return a.localeCompare(
+            b,
+            'pt-BR'
+        );
+
+    });
+
+}
+
+
+function optionHTML(items,placeholder){
+
+    return '<option value="">'
+        + placeholder
+        + '</option>'
+        +
+        items.map(function(x){
+
+            return '<option value="'
+                + esc(x)
+                + '">'
+                + esc(x)
+                + '</option>';
+
+        }).join('');
+
+}
+
+
+function showLoading(text){
+
+    var el=document.getElementById(
+        'loading-layer'
+    );
+
+    el.textContent=text;
+
+    el.classList.add('visible');
+
+}
+
+
+function hideLoading(){
+
+    document.getElementById(
+        'loading-layer'
+    ).classList.remove('visible');
+
+}
+
+
+/* ============================================================
+   CARREGAMENTO DA RENDA
+   ============================================================ */
+
+function loadRenda(){
+
+    if(rendaLoaded){
+
+        lyr_Renda_1.setVisible(true);
+        applySectorStyles();
+        return;
+
+    }
+
+    if(rendaLoading) return;
+
+    rendaLoading=true;
+
+    showLoading('Carregando camada de Renda...');
+
+    console.log(
+        'Mapa Educacional: iniciando carregamento de Renda...'
+    );
+
+    fetch('./layers/Renda_1_otimizada.js', {
+        cache:'no-store'
+    })
+    .then(function(response){
+
+        console.log(
+            'Mapa Educacional: resposta Renda:',
+            response.status,
+            response.url
+        );
+
+        if(!response.ok){
+
+            throw new Error(
+                'HTTP ' +
+                response.status +
+                ' ao carregar ./layers/Renda_1_otimizada.js'
+            );
+
+        }
+
+        return response.text();
+
+    })
+    .then(function(text){
+
+        console.log(
+            'Mapa Educacional: arquivo Renda recebido:',
+            text.length,
+            'caracteres.'
+        );
+
+        /*
+         * O arquivo gerado pelo QGIS possui a estrutura:
+         *
+         * var json_Renda_1 = {...};
+         *
+         * Em vez de executar o arquivo inteiro como <script>,
+         * extraímos somente o objeto GeoJSON.
+         */
+
+        var prefix =
+            'var json_Renda_1 = ';
+
+        var start =
+            text.indexOf(prefix);
+
+        if(start === -1){
+
+            throw new Error(
+                'A variável json_Renda_1 não foi encontrada no arquivo.'
+            );
+
+        }
+
+        start += prefix.length;
+
+        var end =
+            text.lastIndexOf(';');
+
+        if(end <= start){
+
+            throw new Error(
+                'O arquivo de Renda não terminou com um GeoJSON válido.'
+            );
+
+        }
+
+        var jsonText =
+            text.substring(start,end).trim();
+
+        var geojson =
+            JSON.parse(jsonText);
+
+        if(
+            !geojson ||
+            geojson.type !== 'FeatureCollection' ||
+            !Array.isArray(geojson.features)
+        ){
+
+            throw new Error(
+                'O conteúdo de Renda não é um FeatureCollection GeoJSON válido.'
+            );
+
+        }
+
+        console.log(
+            'Mapa Educacional: GeoJSON de Renda válido:',
+            geojson.features.length,
+            'feições.'
+        );
+
+        var format =
+            new ol.format.GeoJSON();
+
+        var features =
+            format.readFeatures(
+                geojson,
+                {
+                    dataProjection:'EPSG:4326',
+                    featureProjection:'EPSG:3857'
+                }
+            );
+
+        if(!features.length){
+
+            throw new Error(
+                'O GeoJSON de Renda foi lido, mas não possui feições.'
+            );
+
+        }
+
+        var source =
+            new ol.source.Vector({
+                features:features
+            });
+
+        var layer =
+            new ol.layer.Vector({
+
+                source:source,
+
+                style:style_Renda_1,
+
+                title:'Renda',
+
+                zIndex:10
+
+            });
+
+        map.addLayer(layer);
+
+        lyr_Renda_1 =
+            layer;
+
+        rendaLoaded=true;
+        rendaLoading=false;
+
+        lyr_Renda_1.setVisible(
+            state.renda
+        );
+
+        /*
+         * Aplica o filtro somente depois de a camada estar
+         * completamente criada e adicionada ao mapa.
+         */
+
+        applySectorStyles();
+
+        hideLoading();
+
+        console.log(
+            'Mapa Educacional: Renda carregada com sucesso.',
+            features.length,
+            'feições.'
+        );
+
+    })
+    .catch(function(error){
+
+        rendaLoading=false;
+        rendaLoaded=false;
+
+        hideLoading();
+
+        state.renda=false;
+
+        var toggle =
+            document.getElementById(
+                'toggleRenda'
+            );
+
+        if(toggle){
+
+            toggle.checked=false;
+
+        }
+
+        console.error(
+            'Mapa Educacional: ERRO REAL AO CARREGAR RENDA:',
+            error
+        );
+
+        alert(
+            'Não foi possível carregar a camada de Renda.\n\n' +
+            'Erro: ' +
+            (error && error.message
+                ? error.message
+                : String(error))
+        );
+
+    });
+
+}
+
+
+/* ============================================================
+   CARREGAMENTO DO PPI
+   ============================================================ */
+
+
+function loadPPI(){
+
+
+    if(ppiLoaded){
+
+        lyr_PPI_2.setVisible(true);
+
+        applySectorStyles();
+
+        return;
+
+    }
+
+    if(ppiLoading) return;
+
+    ppiLoading=true;
+
+    showLoading(
+        'Carregando camada PPI...'
+    );
+
+
+    /*
+     * Assim como a Renda, o PPI é carregado somente quando
+     * solicitado pelo usuário.
+     */
+
+    fetch('./layers/PPI_2_otimizada.js', {
+        cache:'no-store'
+    })
+    .then(function(response){
+
+        if(!response.ok){
+
+            throw new Error(
+                'HTTP ' +
+                response.status +
+                ' ao carregar PPI_2_otimizada.js'
+            );
+
+        }
+
+        return response.text();
+
+    })
+    .then(function(text){
+
+        var match =
+            text.match(
+                /^\s*var\s+json_PPI_2\s*=\s*([\s\S]*?)\s*;\s*$/
+            );
+
+
+        if(!match){
+
+            throw new Error(
+                'O arquivo PPI foi encontrado, mas não possui o formato esperado.'
+            );
+
+        }
+
+
+        var geojson =
+            JSON.parse(match[1]);
+
+
+        var format =
+            new ol.format.GeoJSON();
+
+
+        var features =
+            format.readFeatures(
+                geojson,
+                {
+                    dataProjection:'EPSG:4326',
+                    featureProjection:'EPSG:3857'
+                }
+            );
+
+
+        var source =
+            new ol.source.Vector();
+
+
+        source.addFeatures(
+            features
+        );
+
+
+        lyr_PPI_2 =
+            new ol.layer.Vector({
+
+                source:source,
+
+                style:style_PPI_2,
+
+                interactive:true,
+
+                title:'PPI',
+
+                zIndex:11
+
+            });
+
+
+        map.addLayer(
+            lyr_PPI_2
+        );
+
+
+        ppiLoaded=true;
+        ppiLoading=false;
+
+
+        lyr_PPI_2.setVisible(
+            state.ppi
+        );
+
+
+        applySectorStyles();
+
+        hideLoading();
+
+
+        console.log(
+            'Mapa Educacional: PPI carregado com sucesso.',
+            features.length,
+            'feições.'
+        );
+
+    })
+    .catch(function(error){
+
+        ppiLoading=false;
+
+        hideLoading();
+
+
+        console.error(
+            'Mapa Educacional: erro ao carregar PPI:',
+            error
+        );
+
+
+        state.ppi=false;
+
+
+        var toggle =
+            document.getElementById(
+                'togglePPI'
+            );
+
+
+        if(toggle){
+
+            toggle.checked=false;
+
+        }
+
+
+        alert(
+            'Não foi possível carregar a camada PPI.\\n\\n' +
+            'Verifique o Console do navegador para o erro detalhado.'
+        );
+
+    });
+
+}
+
+
+/* ============================================================
+   FILTRO DAS ESCOLAS
+   ============================================================ */
+
+function matchesSchool(f){
+
+    var p=f.getProperties();
+
+
+    if(
+        state.etapa &&
+        norm(p.ETAPA)!==
+        state.etapa
+    )
+        return false;
+
+
+    if(
+        state.rede &&
+        norm(p.REDE)!==
+        state.rede
+    )
+        return false;
+
+
+    if(
+        state.municipio &&
+        norm(p.NO_MUNICIPIO)!==
+        state.municipio
+    )
+        return false;
+
+
+    if(
+        state.escola &&
+        norm(p.ID_ESCOLA)!==
+        state.escola
+    )
+        return false;
+
+
+    return true;
+
+}
+
+
+/* ============================================================
+   FILTRO DOS SETORES
+   ============================================================ */
+
+function matchesSector(f){
+
+    if(!state.municipio)
+        return true;
+
+
+    var p=f.getProperties();
+
+
+    return (
+
+        norm(p.NM_MUN)===
+        state.municipio
+
+    ) || (
+
+        norm(p.NO_MUNICIPIO)===
+        state.municipio
+
+    );
+
+}
+
+
+/* ============================================================
+   ESTILOS DAS CAMADAS SOB DEMANDA
+   ============================================================ */
+
+function applySectorStyles(){
+
+    if(rendaLoaded){
+
+        lyr_Renda_1.setVisible(
+            state.renda
+        );
+
+
+        lyr_Renda_1.setStyle(
+            function(feature,resolution){
+
+                return matchesSector(
+                    feature
+                )
+                    ? style_Renda_1(
+                        feature,
+                        resolution
+                    )
+                    : null;
+
+            }
+        );
+
+    }
+
+
+    if(ppiLoaded){
+
+        lyr_PPI_2.setVisible(
+            state.ppi
+        );
+
+
+        lyr_PPI_2.setStyle(
+            function(feature,resolution){
+
+                return matchesSector(
+                    feature
+                )
+                    ? style_PPI_2(
+                        feature,
+                        resolution
+                    )
+                    : null;
+
+            }
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   ESTILOS GERAIS
+   ============================================================ */
+
+function applyStyles(){
+
+    applySectorStyles();
+
+
+    lyr_Municipios_Mato_Grosso_do_Sul_2025_3
+        .setVisible(
+            state.municipios
+        );
+
+
+    var activeStyle=
+        state.indicator==='mat'
+            ? style_MetadeMatemtica_4
+            : style_MetadePortugus_5;
+
+
+    var activeLayer=
+        state.indicator==='mat'
+            ? lyr_MetadeMatemtica_4
+            : lyr_MetadePortugus_5;
+
+
+    var inactiveLayer=
+        state.indicator==='mat'
+            ? lyr_MetadePortugus_5
+            : lyr_MetadeMatemtica_4;
+
+
+    inactiveLayer.setVisible(false);
+
+
+    activeLayer.setVisible(true);
+
+
+    activeLayer.setStyle(
+        function(feature,resolution){
+
+            return matchesSchool(
+                feature
+            )
+                ? activeStyle(
+                    feature,
+                    resolution
+                )
+                : null;
+
+        }
+    );
+
+
+    lyr_Municipios_Mato_Grosso_do_Sul_2025_3
+        .setStyle(function(feature){
+
+            var p=
+                feature.getProperties();
+
+
+            var selected=
+                state.municipio &&
+                norm(p.NM_MUN)===
+                state.municipio;
+
+
+            if(
+                state.municipio &&
+                !selected
+            )
+                return null;
+
+
+            return new ol.style.Style({
+
+                stroke:new ol.style.Stroke({
+
+                    color:selected
+                        ? 'rgba(37,99,235,1)'
+                        : 'rgba(255,255,255,.9)',
+
+                    width:selected
+                        ? 4
+                        : 1.5
+
+                }),
+
+                fill:new ol.style.Fill({
+
+                    color:selected
+                        ? 'rgba(37,99,235,.06)'
+                        : 'rgba(0,0,0,0)'
+
+                })
+
+            });
+
+        });
+
+
+    updateSchoolSelect();
+
+    updateCount();
+
+}
+
+
+/* ============================================================
+   ESCOLA SELECT
+   ============================================================ */
+
+function updateSchoolSelect(){
+
+    var sel=
+        document.getElementById(
+            'school-select'
+        );
+
+
+    var candidates=
+        schoolFeatures
+        .filter(function(f){
+
+            var p=
+                f.getProperties();
+
+
+            if(
+                state.etapa &&
+                norm(p.ETAPA)!==
+                state.etapa
+            )
+                return false;
+
+
+            if(
+                state.rede &&
+                norm(p.REDE)!==
+                state.rede
+            )
+                return false;
+
+
+            if(
+                state.municipio &&
+                norm(p.NO_MUNICIPIO)!==
+                state.municipio
+            )
+                return false;
+
+
+            return true;
+
+        })
+        .sort(function(a,b){
+
+            return norm(
+                a.get('NO_ESCOLA')
+            ).localeCompare(
+                norm(
+                    b.get('NO_ESCOLA')
+                ),
+                'pt-BR'
+            );
+
+        });
+
+
+    var seen={};
+
+    var opts=[];
+
+
+    candidates.forEach(
+        function(f){
+
+            var name=
+                norm(
+                    f.get('NO_ESCOLA')
+                );
+
+
+            var id=
+                norm(
+                    f.get('ID_ESCOLA')
+                );
+
+
+            if(
+                name &&
+                !seen[
+                    id+'|'+name
+                ]
+            ){
+
+                seen[
+                    id+'|'+name
+                ]=true;
+
+
+                opts.push({
+
+                    name:name,
+
+                    id:id
+
+                });
+
+            }
+
+        }
+    );
+
+
+    sel.innerHTML=
+        '<option value="">Todas as escolas ('
+        +opts.length+
+        ')</option>'+
+        opts.map(function(o){
+
+            return '<option value="'
+                +esc(o.id)+
+                '">'
+                +esc(o.name)+
+                '</option>';
+
+        }).join('');
+
+
+    if(state.escola){
+
+        var found=
+            opts.find(function(o){
+
+                return o.id===
+                    state.escola;
+
+            });
+
+
+        sel.value=
+            found
+                ? found.id
+                : '';
+
+
+        if(!found)
+            state.escola='';
+
+    }
+
+}
+
+
+/* ============================================================
+   CONTADOR
+   ============================================================ */
+
+function updateCount(){
+
+    var visible=
+        schoolFeatures.filter(
+            matchesSchool
+        );
+
+
+    document.getElementById(
+        'school-count'
+    ).textContent=
+        visible.length+
+        ' escola'+
+        (
+            visible.length===1
+                ? ''
+                : 's'
+        );
+
+}
+
+
+/* ============================================================
+   FILTROS
+   ============================================================ */
+
+function fillMunicipios(){
+
+    var names=
+        uniqueSorted(
+            munFeatures.map(
+                function(f){
+
+                    return norm(
+                        f.get('NM_MUN')
+                    );
+
+                }
+            )
+        );
+
+
+    document.getElementById(
+        'municipio-select'
+    ).innerHTML=
+        optionHTML(
+            names,
+            'Todos os municípios'
+        );
+
+}
+
+
+function fillEtapas(){
+
+    var names=
+        uniqueSorted(
+            schoolFeatures.map(
+                function(f){
+
+                    return norm(
+                        f.get('ETAPA')
+                    );
+
+                }
+            )
+        );
+
+
+    document.getElementById(
+        'etapa-select'
+    ).innerHTML=
+        optionHTML(
+            names,
+            'Todas as etapas'
+        );
+
+}
+
+
+function fillRedes(){
+
+    var names=
+        uniqueSorted(
+            schoolFeatures.map(
+                function(f){
+
+                    return norm(
+                        f.get('REDE')
+                    );
+
+                }
+            )
+        );
+
+
+    document.getElementById(
+        'rede-select'
+    ).innerHTML=
+        optionHTML(
+            names,
+            'Todas as redes'
+        );
+
+}
+
+
+/* ============================================================
+   MUNICÍPIO
+   ============================================================ */
+
+function selectMunicipio(name){
+
+    state.municipio=name;
+
+    state.escola='';
+
+    document.getElementById(
+        'school-select'
+    ).value='';
+
+
+    if(name){
+
+        var f=
+            munFeatures.find(
+                function(x){
+
+                    return norm(
+                        x.get('NM_MUN')
+                    )===name;
+
+                }
+            );
+
+
+        if(f){
+
+            map.getView().fit(
+                f.getGeometry().getExtent(),
+                {
+                    padding:[
+                        90,
+                        390,
+                        90,
+                        40
+                    ],
+                    maxZoom:11,
+                    duration:700
+                }
+            );
+
+        }
+
+    }else{
+
+        map.getView().fit(
+
+            ol.extent.boundingExtent(
+
+                munFeatures.map(
+                    function(f){
+
+                        return f
+                            .getGeometry()
+                            .getExtent();
+
+                    }
+                )
+
+            ),
+
+            {
+                padding:[
+                    100,
+                    380,
+                    70,
+                    40
+                ],
+
+                maxZoom:8,
+
+                duration:700
+
+            }
+
+        );
+
+    }
+
+
+    applyStyles();
+
+}
+
+
+/* ============================================================
+   ESCOLA
+   ============================================================ */
+
+function selectSchool(id){
+
+    state.escola=id;
+
+
+    var f=
+        schoolFeatures.find(
+            function(x){
+
+                return norm(
+                    x.get('ID_ESCOLA')
+                )===id;
+
+            }
+        );
+
+
+    if(f){
+
+        map.getView().animate({
+
+            center:
+                f.getGeometry()
+                 .getCoordinates(),
+
+            zoom:15,
+
+            duration:700
+
+        });
+
+
+        showPopup(f);
+
+        highlightFeature(f);
+
+    }
+
+
+    applyStyles();
+
+}
+
+
+/* ============================================================
+   DESTAQUE DA ESCOLA
+   ============================================================ */
+
+var selectedSource=
+    new ol.source.Vector();
+
+
+var selectedLayer=
+    new ol.layer.Vector({
+
+        source:selectedSource,
+
+        zIndex:100,
+
+        style:new ol.style.Style({
+
+            image:new ol.style.Circle({
+
+                radius:12,
+
+                fill:new ol.style.Fill({
+
+                    color:
+                        'rgba(37,99,235,.18)'
+
+                }),
+
+                stroke:new ol.style.Stroke({
+
+                    color:'#fff',
+
+                    width:3
+
+                })
+
+            })
+
+        })
+
+    });
+
+
+map.addLayer(
+    selectedLayer
+);
+
+
+function highlightFeature(f){
+
+    selectedSource.clear();
+
+    selectedSource.addFeature(
+        f.clone()
+    );
+
+    selectedSource
+        .getFeatures()[0]
+        .setGeometry(
+            f.getGeometry().clone()
+        );
+
+}
+
+
+/* ============================================================
+   FORMATAÇÃO
+   ============================================================ */
+
+function fmt(v){
+
+    if(
+        v===null ||
+        v===undefined ||
+        v==='' ||
+        v==='-' ||
+        v==='ND'
+    )
+        return '—';
+
+
+    var n=
+        Number(
+            String(v).replace(',','.')
+        );
+
+
+    return Number.isFinite(n)
+        ? n.toLocaleString(
+            'pt-BR',
+            {
+                maximumFractionDigits:2
+            }
+        )
+        : esc(v);
+
+}
+
+
+function boolPill(v){
+
+    var x=
+        norm(v).toLowerCase();
+
+
+    if(!x)
+        return '<span class="pill missing">SN</span>';
+
+
+    return x==='sim'
+        ? '<span class="pill yes">Sim</span>'
+        : '<span class="pill no">Não</span>';
+
+}
+
+
+/* ============================================================
+   POPUP ESCOLA
+   ============================================================ */
+
+function showPopup(f){
+
+    var p=
+        f.getProperties();
+
+
+    var title=
+        norm(p.NO_ESCOLA)||
+        'Escola';
+
+
+    document.getElementById(
+        'popup-body'
+    ).innerHTML=
+
+        '<div class="popup-type">ESCOLA</div>'+
+
+        '<h3>'+
+        esc(title)+
+        '</h3>'+
+
+        '<div class="popup-grid">'+
+
+        '<div><b>Município</b><span>'+
+        esc(norm(p.NO_MUNICIPIO))+
+        '</span></div>'+
+
+        '<div><b>Rede</b><span>'+
+        esc(norm(p.REDE))+
+        '</span></div>'+
+
+        '<div><b>Etapa</b><span>'+
+        esc(norm(p.ETAPA))+
+        '</span></div>'+
+
+        '<div><b>ID</b><span>'+
+        esc(norm(p.ID_ESCOLA))+
+        '</span></div>'+
+
+        '<div><b>Meta de Português</b><span>'+
+        boolPill(p.META_PORT)+
+        '</span></div>'+
+
+        '<div><b>Meta de Matemática</b><span>'+
+        boolPill(p.META_MAT)+
+        '</span></div>'+
+
+        '<div><b>Nota de Português 2025</b><span>'+
+        fmt(p.VL_NOTA_PORTUGUES_2025)+
+        '</span></div>'+
+
+        '<div><b>Nota de Matemática 2025</b><span>'+
+        fmt(p.VL_NOTA_MATEMATICA_2025)+
+        '</span></div>'+
+
+        '<div><b>Indicador de rendimento 2025</b><span>'+
+        fmt(p.VL_INDICADOR_REND_2025)+
+        '</span></div>'+
+
+        '<div><b>Ideb observado 2025</b><span>'+
+        fmt(p.VL_OBSERVADO_2025)+
+        '</span></div>'+
+
+        '</div>'+
+
+        '<div class="popup-foot">'+
+        'Os dados exibidos são os atributos disponíveis na base escolar utilizada no mapa.'+
+        '</div>';
+
+
+    document.getElementById(
+        'custom-popup'
+    ).classList.add('visible');
+
+}
+
+
+/* ============================================================
+   POPUP SETOR
+   ============================================================ */
+
+function showSectorPopup(f){
+
+    var p=
+        f.getProperties();
+
+
+    document.getElementById(
+        'popup-body'
+    ).innerHTML=
+
+        '<div class="popup-type">'+
+        'SETOR CENSITÁRIO'+
+        '</div>'+
+
+        '<h3>'+
+        esc(
+            norm(p.NM_MUN)||
+            'Setor censitário'
+        )+
+        '</h3>'+
+
+        '<div class="popup-grid">'+
+
+        '<div><b>Município</b><span>'+
+        esc(norm(p.NM_MUN))+
+        '</span></div>'+
+
+        '<div><b>Código do setor</b><span>'+
+        esc(norm(p.CD_SETOR))+
+        '</span></div>'+
+
+        '<div class="wide">'+
+        '<b>Indicador exibido</b>'+
+        '<span>Camada territorial selecionada.</span>'+
+        '</div>'+
+
+        '</div>';
+
+
+    document.getElementById(
+        'custom-popup'
+    ).classList.add('visible');
+
+}
+
+
+/* ============================================================
+   CLIQUE NO MAPA
+   ============================================================ */
+
+map.on(
+    'singleclick',
+    function(evt){
+
+        var hit=false;
+
+
+        map.forEachFeatureAtPixel(
+            evt.pixel,
+
+            function(feature,layer){
+
+                if(hit)
+                    return;
+
+
+                if(layer===selectedLayer)
+                    return;
+
+
+                if(
+                    layer===
+                        lyr_MetadePortugus_5
+                    ||
+                    layer===
+                        lyr_MetadeMatemtica_4
+                ){
+
+                    showPopup(feature);
+
+                    highlightFeature(
+                        feature
+                    );
+
+
+                    state.escola=
+                        norm(
+                            feature.get(
+                                'ID_ESCOLA'
+                            )
+                        );
+
+
+                    document.getElementById(
+                        'school-select'
+                    ).value=
+                        state.escola;
+
+
+                    hit=true;
+
+                }
+
+
+                else if(
+                    rendaLoaded &&
+                    layer===lyr_Renda_1
+                ){
+
+                    showSectorPopup(
+                        feature
+                    );
+
+                    hit=true;
+
+                }
+
+
+                else if(
+                    ppiLoaded &&
+                    layer===lyr_PPI_2
+                ){
+
+                    showSectorPopup(
+                        feature
+                    );
+
+                    hit=true;
+
+                }
+
+            },
+
+            {
+                hitTolerance:5
+            }
+
+        );
+
+    }
+);
+
+
+/* ============================================================
+   EVENTOS DOS FILTROS
+   ============================================================ */
+
+document.getElementById(
+    'etapa-select'
+).addEventListener(
+    'change',
+    function(){
+
+        state.etapa=this.value;
+
+        state.escola='';
+
+        selectedSource.clear();
+
+        applyStyles();
+
+    }
+);
+
+
+document.getElementById(
+    'rede-select'
+).addEventListener(
+    'change',
+    function(){
+
+        state.rede=this.value;
+
+        state.escola='';
+
+        selectedSource.clear();
+
+        applyStyles();
+
+    }
+);
+
+
+document.getElementById(
+    'municipio-select'
+).addEventListener(
+    'change',
+    function(){
+
+        selectMunicipio(
+            this.value
+        );
+
+    }
+);
+
+
+document.getElementById(
+    'school-select'
+).addEventListener(
+    'change',
+    function(){
+
+        if(this.value){
+
+            selectSchool(
+                this.value
+            );
+
+        }else{
+
+            state.escola='';
+
+            selectedSource.clear();
+
+            applyStyles();
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   PORTUGUÊS / MATEMÁTICA
+   ============================================================ */
+
+document.getElementById(
+    'indicator-port'
+).addEventListener(
+    'click',
+    function(){
+
+        state.indicator='port';
+
+        setIndicatorButtons();
+
+        applyStyles();
+
+    }
+);
+
+
+document.getElementById(
+    'indicator-mat'
+).addEventListener(
+    'click',
+    function(){
+
+        state.indicator='mat';
+
+        setIndicatorButtons();
+
+        applyStyles();
+
+    }
+);
+
+
+function setIndicatorButtons(){
+
+    document.getElementById(
+        'indicator-port'
+    ).classList.toggle(
+        'active',
+        state.indicator==='port'
+    );
+
+
+    document.getElementById(
+        'indicator-mat'
+    ).classList.toggle(
+        'active',
+        state.indicator==='mat'
+    );
+
+}
+
+
+/* ============================================================
+   BOTÃO RENDA
+   ============================================================ */
+
+document.getElementById(
+    'toggle-renda'
+).addEventListener(
+    'click',
+    function(){
+
+        state.renda=
+            !state.renda;
+
+
+        this.classList.toggle(
+            'active',
+            state.renda
+        );
+
+
+        if(state.renda){
+
+            loadRenda();
+
+        }else if(rendaLoaded){
+
+            lyr_Renda_1
+                .setVisible(false);
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   BOTÃO PPI
+   ============================================================ */
+
+document.getElementById(
+    'toggle-ppi'
+).addEventListener(
+    'click',
+    function(){
+
+        state.ppi=
+            !state.ppi;
+
+
+        this.classList.toggle(
+            'active',
+            state.ppi
+        );
+
+
+        if(state.ppi){
+
+            loadPPI();
+
+        }else if(ppiLoaded){
+
+            lyr_PPI_2
+                .setVisible(false);
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   MUNICÍPIOS
+   ============================================================ */
+
+document.getElementById(
+    'toggle-municipios'
+).addEventListener(
+    'click',
+    function(){
+
+        state.municipios=
+            !state.municipios;
+
+
+        this.classList.toggle(
+            'active',
+            state.municipios
+        );
+
+
+        lyr_Municipios_Mato_Grosso_do_Sul_2025_3
+            .setVisible(
+                state.municipios
+            );
+
+    }
+);
+
+
+/* ============================================================
+   RESET
+   ============================================================ */
+
+document.getElementById(
+    'reset-btn'
+).addEventListener(
+    'click',
+    function(){
+
+        state={
+
+            etapa:'',
+            rede:'',
+            municipio:'',
+            escola:'',
+
+            indicator:'port',
+
+            renda:false,
+            ppi:false,
+
+            municipios:true
+
+        };
+
+
+        document.getElementById(
+            'etapa-select'
+        ).value='';
+
+
+        document.getElementById(
+            'rede-select'
+        ).value='';
+
+
+        document.getElementById(
+            'municipio-select'
+        ).value='';
+
+
+        document.getElementById(
+            'school-select'
+        ).value='';
+
+
+        document.getElementById(
+            'toggle-renda'
+        ).classList.remove(
+            'active'
+        );
+
+
+        document.getElementById(
+            'toggle-ppi'
+        ).classList.remove(
+            'active'
+        );
+
+
+        document.getElementById(
+            'toggle-municipios'
+        ).classList.add(
+            'active'
+        );
+
+
+        if(rendaLoaded){
+
+            lyr_Renda_1
+                .setVisible(false);
+
+        }
+
+
+        if(ppiLoaded){
+
+            lyr_PPI_2
+                .setVisible(false);
+
+        }
+
+
+        setIndicatorButtons();
+
+        selectedSource.clear();
+
+
+        map.getView().fit(
+
+            ol.extent.boundingExtent(
+
+                munFeatures.map(
+                    function(f){
+
+                        return f
+                            .getGeometry()
+                            .getExtent();
+
+                    }
+                )
+
+            ),
+
+            {
+                padding:[
+                    100,
+                    380,
+                    70,
+                    40
+                ],
+
+                maxZoom:8,
+
+                duration:700
+
+            }
+
+        );
+
+
+        applyStyles();
+
+
+        document.getElementById(
+            'custom-popup'
+        ).classList.remove(
+            'visible'
+        );
+
+    }
+);
+
+
+/* ============================================================
+   PAINEL
+   ============================================================ */
+
+document.getElementById(
+    'close-panel'
+).addEventListener(
+    'click',
+    function(){
+
+        document.getElementById(
+            'control-panel'
+        ).classList.add(
+            'collapsed'
+        );
+
+
+        document.getElementById(
+            'open-panel'
+        ).classList.add(
+            'visible'
+        );
+
+    }
+);
+
+
+document.getElementById(
+    'open-panel'
+).addEventListener(
+    'click',
+    function(){
+
+        document.getElementById(
+            'control-panel'
+        ).classList.remove(
+            'collapsed'
+        );
+
+
+        this.classList.remove(
+            'visible'
+        );
+
+    }
+);
+
+
+/* ============================================================
+   FECHAR POPUP
+   ============================================================ */
+
+document.getElementById(
+    'popup-close'
+).addEventListener(
+    'click',
+    function(){
+
+        document.getElementById(
+            'custom-popup'
+        ).classList.remove(
+            'visible'
+        );
+
+
+        selectedSource.clear();
+
+    }
+);
+
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+
+fillMunicipios();
+
+fillEtapas();
+
+fillRedes();
+
+setIndicatorButtons();
+
+applyStyles();
+
+
+/*
+   IMPORTANTE:
+
+   O mapa começa somente com:
+
+   ✓ Google Satellite
+   ✓ Municípios
+   ✓ Escolas
+
+   Renda e PPI NÃO são carregadas aqui.
+*/
+
+
+setTimeout(
+    function(){
+
+        map.getView().fit(
+
+            ol.extent.boundingExtent(
+
+                munFeatures.map(
+                    function(f){
+
+                        return f
+                            .getGeometry()
+                            .getExtent();
+
+                    }
+                )
+
+            ),
+
+            {
+                padding:[
+                    100,
+                    380,
+                    70,
+                    40
+                ],
+
+                maxZoom:8
+
+            }
+
+        );
+
+    },
+    100
+);
+
+
+})();
+
+</script>
+
+</body>
+</html>
